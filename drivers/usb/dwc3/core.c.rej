@@ -1,0 +1,44 @@
+--- drivers/usb/dwc3/core.c
++++ drivers/usb/dwc3/core.c
+@@ -796,17 +809,27 @@ static int dwc3_core_init(struct dwc3 *dwc)
+ 			dwc->maximum_speed = USB_SPEED_HIGH;
+ 	}
+ 
+-	ret = dwc3_core_get_phy(dwc);
++	ret = dwc3_phy_setup(dwc);
+ 	if (ret)
+ 		goto err0;
+ 
+-	ret = dwc3_core_soft_reset(dwc);
+-	if (ret)
+-		goto err0;
++	if (!dwc->ulpi_ready) {
++		ret = dwc3_core_ulpi_init(dwc);
++		if (ret)
++			goto err0;
++		dwc->ulpi_ready = true;
++	}
+ 
+-	ret = dwc3_phy_setup(dwc);
++	if (!dwc->phys_ready) {
++		ret = dwc3_core_get_phy(dwc);
++		if (ret)
++			goto err0a;
++		dwc->phys_ready = true;
++	}
++
++	ret = dwc3_core_soft_reset(dwc);
+ 	if (ret)
+-		goto err0;
++		goto err0a;
+ 
+ 	dwc3_core_setup_global_control(dwc);
+ 	dwc3_core_num_eps(dwc);
+@@ -1272,7 +1298,6 @@ err4:
+ 
+ err3:
+ 	dwc3_free_event_buffers(dwc);
+-	dwc3_ulpi_exit(dwc);
+ 
+ err2:
+ 	pm_runtime_allow(&pdev->dev);
