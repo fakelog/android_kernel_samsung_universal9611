@@ -100,6 +100,7 @@ int dm_linear_map(struct dm_target *ti, struct bio *bio)
 
 	return DM_MAPIO_REMAPPED;
 }
+#endif
 
 int dm_linear_end_io(struct dm_target *ti, struct bio *bio,
 			 blk_status_t *error)
