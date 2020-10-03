@@ -1686,7 +1686,7 @@ struct xhci_bus_state {
  * It can take up to 20 ms to transition from RExit to U0 on the
  * Intel Lynx Point LP xHCI host.
  */
-#define	XHCI_MAX_REXIT_TIMEOUT	(20 * 1000)
+#define	XHCI_MAX_REXIT_TIMEOUT_MS	20
 
 static inline unsigned int hcd_index(struct usb_hcd *hcd)
 {
@@ -1821,12 +1821,12 @@ struct xhci_hcd {
 #define XHCI_STATE_DYING	(1 << 0)
 #define XHCI_STATE_HALTED	(1 << 1)
 #define XHCI_STATE_REMOVING	(1 << 2)
-	unsigned int		quirks;
-#define	XHCI_LINK_TRB_QUIRK	(1 << 0)
-#define XHCI_RESET_EP_QUIRK	(1 << 1)
-#define XHCI_NEC_HOST		(1 << 2)
-#define XHCI_AMD_PLL_FIX	(1 << 3)
-#define XHCI_SPURIOUS_SUCCESS	(1 << 4)
+	unsigned long long	quirks;
+#define	XHCI_LINK_TRB_QUIRK	BIT_ULL(0)
+#define XHCI_RESET_EP_QUIRK	BIT_ULL(1)
+#define XHCI_NEC_HOST		BIT_ULL(2)
+#define XHCI_AMD_PLL_FIX	BIT_ULL(3)
+#define XHCI_SPURIOUS_SUCCESS	BIT_ULL(4)
 /*
  * Certain Intel host controllers have a limit to the number of endpoint
  * contexts they can handle.  Ideally, they would signal that they can't handle
