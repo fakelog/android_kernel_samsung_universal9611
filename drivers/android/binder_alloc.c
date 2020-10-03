@@ -348,7 +348,7 @@ static struct binder_buffer *binder_alloc_new_buf_locked(
 	size_t size, data_offsets_size;
 	int ret;
 
-	if (alloc->vma == NULL) {
+	if (!binder_alloc_get_vma(alloc)) {
 		pr_err("%d: binder_alloc_buf, no vma\n",
 		       alloc->pid);
 		return ERR_PTR(-ESRCH);
@@ -729,9 +729,7 @@ int binder_alloc_mmap_handler(struct binder_alloc *alloc,
 	buffer->free = 1;
 	binder_insert_free_buffer(alloc, buffer);
 	alloc->free_async_space = alloc->buffer_size / 2;
-	barrier();
-	alloc->vma = vma;
-	alloc->vma_vm_mm = vma->vm_mm;
+	binder_alloc_set_vma(alloc, vma);
 	mmgrab(alloc->vma_vm_mm);
 
 	return 0;
@@ -758,10 +756,10 @@ void binder_alloc_deferred_release(struct binder_alloc *alloc)
 	int buffers, page_count;
 	struct binder_buffer *buffer;
 
-	BUG_ON(alloc->vma);
-
 	buffers = 0;
 	mutex_lock(&alloc->mutex);
+	BUG_ON(alloc->vma);
+
 	while ((n = rb_first(&alloc->allocated_buffers))) {
 		buffer = rb_entry(n, struct binder_buffer, rb_node);
 
@@ -904,7 +902,7 @@ int binder_alloc_get_allocated_count(struct binder_alloc *alloc)
  */
 void binder_alloc_vma_close(struct binder_alloc *alloc)
 {
-	WRITE_ONCE(alloc->vma, NULL);
+	binder_alloc_set_vma(alloc, NULL);
 }
 
 /**
